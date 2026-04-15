@@ -6,6 +6,7 @@ import { userListingsAPI } from '../services/api';
 import Navbar from '../components/common/Navbar';
 import Footer from '../components/common/Footer';
 import { formatPrice } from '../utils/formatPrice';
+import { getImageUrl } from '../utils/getImageUrl';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -259,7 +260,7 @@ const MyListingsPage: React.FC = () => {
                 <div className="sm:w-48 sm:flex-shrink-0 h-44 sm:h-auto bg-[#F3EDE8] relative">
                   {coverImage ? (
                     <img
-                      src={coverImage}
+                      src={getImageUrl(coverImage)}
                       alt={listing.title}
                       className="w-full h-full object-cover"
                       loading="lazy"

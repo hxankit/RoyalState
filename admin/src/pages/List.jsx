@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import apiClient from "../services/apiClient";
-import { cn, formatPrice } from "../lib/utils";
+import { cn, formatPrice, getImageUrl } from "../lib/utils";
 
 const PROPERTY_TYPES = ["all", "House", "Apartment", "Office", "Villa"];
 const SORT_OPTIONS = [
@@ -42,7 +42,7 @@ const PropertyGridCard = ({ property, onRemove }) => (
     {/* Image */}
     <div className="relative h-48 overflow-hidden bg-[#F5F1E8]">
       {property.image?.[0] ? (
-        <img src={property.image[0]} alt={property.title}
+        <img src={getImageUrl(property.image[0])} alt={property.title}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
       ) : (
         <div className="w-full h-full flex items-center justify-center">
@@ -116,7 +116,7 @@ const PropertyListRow = ({ property, onRemove }) => (
     {/* Thumbnail */}
     <div className="w-16 h-16 rounded-xl overflow-hidden bg-[#F5F1E8] flex-shrink-0">
       {property.image?.[0] ? (
-        <img src={property.image[0]} alt={property.title} className="w-full h-full object-cover" />
+        <img src={getImageUrl(property.image[0])} alt={property.title} className="w-full h-full object-cover" />
       ) : (
         <div className="w-full h-full flex items-center justify-center">
           <Building2 className="w-6 h-6 text-[#E6D5C3]" />

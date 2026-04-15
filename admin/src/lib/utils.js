@@ -42,3 +42,21 @@ export function truncate(text, length = 50) {
   if (!text) return '';
   return text.length > length ? `${text.slice(0, length)}...` : text;
 }
+
+/**
+ * Convert relative image paths to full URLs
+ * @param {string} imagePath - Image path (e.g., "/uploads/property-xxx.jpg" or "http://...")
+ * @returns {string} Full URL
+ */
+export function getImageUrl(imagePath) {
+  if (!imagePath) return null;
+  
+  // If it's already an absolute URL, return as-is
+  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+    return imagePath;
+  }
+  
+  // If it's a relative path, prepend the backend URL
+  const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000';
+  return `${backendUrl}${imagePath}`;
+}

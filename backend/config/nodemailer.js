@@ -1,7 +1,6 @@
 import nodemailer from 'nodemailer';
-import dotenv from 'dotenv';
 
-dotenv.config();
+let transporter = null;
 
 const createTransporter = () => {
   if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
@@ -17,10 +16,16 @@ const createTransporter = () => {
   });
 };
 
-const transporter = createTransporter();
+// Lazy load transporter on first use
+const getTransporter = () => {
+  if (!transporter) {
+    transporter = createTransporter();
+  }
+  return transporter;
+};
 
 export const sendEmail = async (mailOptions) => {
-  return await transporter.sendMail(mailOptions);
+  return await getTransporter().sendMail(mailOptions);
 };
 
 export const checkEmailHealth = async () => {

@@ -31,7 +31,7 @@ const wrap = (title, body) => `
 
   <!-- Footer -->
   <div style="border-top:1px solid ${BRAND.border};padding:20px 28px;text-align:center;font-size:12px;color:${BRAND.muted};">
-    <p style="margin:0;">&copy; ${BRAND.year} BuildEstate. All rights reserved.</p>
+    <p style="margin:0;">&copy; ${BRAND.year} RoyalEstate. All rights reserved.</p>
     <p style="margin:8px 0 0;">
       <a href="${BRAND.site}" style="color:${BRAND.color};text-decoration:none;">Website</a>
       &nbsp;&middot;&nbsp;

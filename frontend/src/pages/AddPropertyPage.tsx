@@ -115,7 +115,11 @@ const AddPropertyPage: React.FC = () => {
     const fd = new FormData();
     Object.entries(form).forEach(([key, val]) => fd.append(key, val));
     fd.append('amenities', JSON.stringify(amenities));
-    images.forEach((img) => fd.append('images', img));
+    
+    // Append images with correct field names: image1, image2, image3, image4
+    images.forEach((img, idx) => {
+      fd.append(`image${idx + 1}`, img);
+    });
 
     setSubmitting(true);
     try {

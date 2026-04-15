@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# BuildEstate Backend Quick Setup Script
-# This script helps you set up the BuildEstate backend quickly
+# RoyalEstate Backend Quick Setup Script
+# This script helps you set up the RoyalEstate backend quickly
 
 # Colors for output
 RED='\033[0;31m'
@@ -33,7 +33,7 @@ print_header() {
 }
 
 # Header
-print_header "🏠 BuildEstate Backend Setup"
+print_header "🏠 RoyalEstate Backend Setup"
 print_header "============================"
 echo ""
 
@@ -137,7 +137,7 @@ if [ ! -f ".env.local" ]; then
         print_warning ".env.example not found. Creating basic .env.local template..."
         cat > .env.local << EOF
 # MongoDB Configuration
-MONGO_URI=mongodb://localhost:27017/buildestate
+MONGO_URI=mongodb://localhost:27017/royalEstate
 
 # JWT Configuration
 JWT_SECRET=your-super-secret-jwt-key-here

@@ -1,5 +1,5 @@
 /**
- * Shared utilities for the BuildEstate monorepo
+ * Shared utilities for the RoyalEstate monorepo
  *
  * This module can be imported by:
  * - frontend/

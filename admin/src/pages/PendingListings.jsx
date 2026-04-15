@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import apiClient from "../services/apiClient";
-import { cn, formatPrice, formatDate } from "../lib/utils";
+import { cn, formatPrice, formatDate, getImageUrl } from "../lib/utils";
 
 // ── Reject Modal ──────────────────────────────────────────────────────────────
 
@@ -147,7 +147,7 @@ const ListingCard = ({ listing, onApprove, onReject, actionLoading }) => {
         >
           {cover ? (
             <img
-              src={cover}
+              src={getImageUrl(cover)}
               alt={listing.title}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             />
@@ -286,7 +286,7 @@ const ListingCard = ({ listing, onApprove, onReject, actionLoading }) => {
               {listing.image.map((src, idx) => (
                 <img
                   key={idx}
-                  src={src}
+                  src={getImageUrl(src)}
                   alt={`Image ${idx + 1}`}
                   className="h-24 w-36 object-cover rounded-lg flex-shrink-0 border border-[#E6D5C3]"
                 />

@@ -16,6 +16,7 @@ import {
   ChevronRight,
   Building2,
   Menu,
+  Mail,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
@@ -54,6 +55,7 @@ const Sidebar = ({ isOpen, setIsOpen, isCollapsed, setIsCollapsed }) => {
       label: 'Activity',
       items: [
         { path: '/activity-logs', label: 'Activity Logs', icon: FileText },
+        { path: '/form-queries', label: 'Form Queries', icon: Mail },
       ],
     },
   ];

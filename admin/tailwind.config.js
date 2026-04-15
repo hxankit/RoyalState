@@ -8,7 +8,7 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // BuildEstate Design System
+        // RoyalEstate Design System
         cream: {
           DEFAULT: '#FAF8F4',
           50: '#FDFCFA',

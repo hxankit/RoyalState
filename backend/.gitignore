@@ -48,6 +48,10 @@ dist/
 # Coverage directory used by tools like istanbul
 coverage/
 
+# Uploaded files and images
+uploads/
+
+
 # Miscellaneous
 *.pem
 *.p12

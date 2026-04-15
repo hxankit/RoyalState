@@ -22,7 +22,7 @@ const FAQSection: React.FC = () => {
     },
     {
       id: 3,
-      question: "Can I list my property exclusively with BuildEstate?",
+      question: "Can I list my property exclusively with RoyalEstate?",
       answer: "Yes, we offer exclusive listing agreements with premium marketing benefits including professional photography, virtual tours, AI-powered listing optimization, and dedicated property consultant support throughout the selling process."
     },
     {

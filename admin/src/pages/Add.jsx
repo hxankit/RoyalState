@@ -131,7 +131,7 @@ const PropertyForm = () => {
           className="mb-8"
         >
           <h1 className="text-3xl font-bold text-[#1C1B1A] mb-1">Add New Property</h1>
-          <p className="text-[#5A5856]">Fill in the details to list a new property on BuildEstate</p>
+          <p className="text-[#5A5856]">Fill in the details to list a new property on RoyalEstate</p>
         </motion.div>
 
         <motion.form
