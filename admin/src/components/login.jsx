@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import { motion } from "framer-motion";
 import { Eye, EyeOff, Mail, Lock, Shield, ArrowRight, Loader2, Home, Building2, Users, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
+import { loginSuccess as loginReduxSuccess, loginFailure } from "../store/authSlice";
 import apiClient from "../services/apiClient";
 import { cn } from "../lib/utils";
 
@@ -13,28 +15,107 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [focusedField, setFocusedField] = useState(null);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const response = await apiClient.post('/api/users/admin', {
-        email,
-        password,
-      });
+      // Try admin login first
+      try {
+        const adminResponse = await apiClient.post('/api/users/admin', {
+          email,
+          password,
+        });
 
-      if (response.data.success) {
-        localStorage.setItem("token", response.data.token);
-        localStorage.setItem("isAdmin", "true");
-        toast.success("Welcome back, Admin!");
-        navigate("/dashboard");
-      } else {
-        toast.error(response.data.message || "Login failed");
+        if (adminResponse.data.success) {
+          const { token } = adminResponse.data;
+          const userData = {
+            email: adminResponse.data.user?.email || email,
+            name: adminResponse.data.user?.name || 'Admin',
+            id: adminResponse.data.user?._id,
+            role: 'superadmin',
+          };
+
+          // Store in Redux
+          dispatch(loginReduxSuccess({
+            token,
+            user: userData,
+            role: 'superadmin',
+          }));
+
+          // Also set in localStorage for legacy compatibility
+          localStorage.setItem("token", token);
+          localStorage.setItem("role", 'superadmin');
+
+          // Set token in API client
+          apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
+          toast.success("Welcome back, Admin!");
+          navigate("/dashboard");
+          return;
+        }
+      } catch (adminError) {
+        console.log('Admin login failed, trying builder login...');
+      }
+
+      // Try builder login (regular user with builder role)
+      try {
+        const userResponse = await apiClient.post('/api/users/login', {
+          email,
+          password,
+        });
+
+        if (userResponse.data.success) {
+          const userRole = userResponse.data.user?.role;
+          console.log('Builder login response - user role:', userRole);
+          
+          if (userRole === 'builder') {
+            const { token } = userResponse.data;
+            const userData = {
+              email: userResponse.data.user?.email || email,
+              name: userResponse.data.user?.name || 'Builder',
+              id: userResponse.data.user?._id,
+              role: 'builder',
+            };
+
+            // Store in Redux
+            dispatch(loginReduxSuccess({
+              token,
+              user: userData,
+              role: 'builder',
+            }));
+
+            // Also set in localStorage for legacy compatibility
+            localStorage.setItem("token", token);
+            localStorage.setItem("role", 'builder');
+
+            // Set token in API client
+            apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
+            toast.success("Welcome back, Builder!");
+            navigate("/dashboard");
+            return;
+          } else {
+            toast.error("Only admin and builder accounts can access this panel. Your account role: " + (userRole || 'unknown'));
+            dispatch(loginFailure("Invalid user role"));
+          }
+        } else {
+          toast.error(userResponse.data.message || "Login failed");
+          dispatch(loginFailure(userResponse.data.message || "Login failed"));
+        }
+      } catch (builderError) {
+        console.error("Builder login error:", builderError);
+        const errorMsg = builderError.response?.data?.message || "Invalid email or password";
+        toast.error(errorMsg);
+        dispatch(loginFailure(errorMsg));
       }
     } catch (error) {
       console.error("Error logging in:", error);
-      toast.error(error.response?.data?.message || "Invalid admin credentials");
+      const errorMsg = error.response?.data?.message || "Invalid credentials";
+      toast.error(errorMsg);
+      dispatch(loginFailure(errorMsg));
     } finally {
       setLoading(false);
     }

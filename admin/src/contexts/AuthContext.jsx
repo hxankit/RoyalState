@@ -1,70 +1,85 @@
-import { createContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
-import { APP_CONSTANTS } from '../config/constants';
+import { useDispatch, useSelector } from 'react-redux';
+import { setAuthStatus, logout as logoutAction } from '../store/authSlice';
+import { clearDashboardCache } from '../store/adminDashboardSlice';
+import { clearBuilderCache } from '../store/builderDashboardSlice';
+import apiClient from '../services/apiClient';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [user, setUser] = useState(null);
+  const dispatch = useDispatch();
+  const auth = useSelector(state => state.auth);
 
   const logout = useCallback(() => {
-    localStorage.removeItem(APP_CONSTANTS.TOKEN_KEY);
-    localStorage.removeItem(APP_CONSTANTS.IS_ADMIN_KEY);
-    setIsAuthenticated(false);
-    setUser(null);
-  }, []);
+    // Clear Redux state
+    dispatch(logoutAction());
+    dispatch(clearDashboardCache());
+    dispatch(clearBuilderCache());
+    
+    // Clear API client headers
+    delete apiClient.defaults.headers.common['Authorization'];
+    
+    // Clear localStorage
+    localStorage.removeItem('token');
+    localStorage.removeItem('role');
+    localStorage.removeItem('isAdmin');
+  }, [dispatch]);
 
   const checkAuthStatus = useCallback(() => {
     try {
-      const token = localStorage.getItem(APP_CONSTANTS.TOKEN_KEY);
-      const isAdmin = localStorage.getItem(APP_CONSTANTS.IS_ADMIN_KEY);
+      const token = localStorage.getItem('token') || auth.token;
+      const role = localStorage.getItem('role') || auth.role;
       
-      if (token && isAdmin === 'true') {
+      if (token) {
         // Verify token expiration
         const tokenData = JSON.parse(atob(token.split('.')[1]));
         const isExpired = tokenData.exp * 1000 < Date.now();
         
         if (!isExpired) {
-          setIsAuthenticated(true);
-          setUser({ 
-            email: tokenData.email || 'Admin',
-            role: 'admin',
-            id: tokenData.id
-          });
+          const userData = {
+            email: tokenData.email || 'User',
+            name: tokenData.name || 'User',
+            role: role || tokenData.role || 'superadmin',
+            id: tokenData.id,
+          };
+          
+          // Only dispatch if Redux auth is not already set
+          if (!auth.isAuthenticated || !auth.user) {
+            dispatch(setAuthStatus({
+              isAuthenticated: true,
+              token,
+              user: userData,
+              role: userData.role,
+            }));
+          }
+          
+          // Ensure token is in API headers
+          apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         } else {
-          // Token expired, clear storage
+          // Token expired
           logout();
         }
       }
     } catch (error) {
       console.error('Error checking auth status:', error);
       logout();
-    } finally {
-      setIsLoading(false);
     }
-  }, [logout]);
+  }, [dispatch, logout, auth.token, auth.role, auth.isAuthenticated, auth.user]);
 
   // Check authentication status on mount
   useEffect(() => {
     checkAuthStatus();
-  }, [checkAuthStatus]);
-
-  const login = (token, userData) => {
-    localStorage.setItem(APP_CONSTANTS.TOKEN_KEY, token);
-    localStorage.setItem(APP_CONSTANTS.IS_ADMIN_KEY, 'true');
-    setIsAuthenticated(true);
-    setUser(userData);
-  };
+  }, []);
 
   const value = {
-    isAuthenticated,
-    isLoading,
-    user,
-    login,
+    isAuthenticated: auth.isAuthenticated,
+    isLoading: auth.isLoading,
+    user: auth.user,
+    token: auth.token,
     logout,
-    checkAuthStatus
+    checkAuthStatus,
   };
 
   return (

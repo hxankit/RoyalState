@@ -9,7 +9,9 @@ import {
   updateAppointmentMeetingLink,
   getAppointmentStats,
   submitAppointmentFeedback,
-  getUpcomingAppointments
+  getUpcomingAppointments,
+  getBuilderEnquiries,
+  getBuilderStats
 } from "../controller/appointmentController.js";
 
 
@@ -23,8 +25,12 @@ router.put("/cancel/:id", cancelAppointment);
 router.put("/feedback/:id", submitAppointmentFeedback);
 router.get("/upcoming", getUpcomingAppointments);
 
+// Builder/Lister routes (authenticated)
+router.get("/builder/enquiries", protect, getBuilderEnquiries);  // Get builder's property enquiries
+router.get("/builder/stats", protect, getBuilderStats);          // Get builder dashboard stats
+
 // Admin routes
-router.get("/all", getAllAppointments);
+router.get("/all", protect, getAllAppointments);  // Protected: filters by role
 router.get("/stats", getAppointmentStats);
 router.put("/status", updateAppointmentStatus);
 router.put("/update-meeting", updateAppointmentMeetingLink);

@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import EnquiryModal from './EnquiryModal';
+import { getImageUrl } from '@/utils/getImageUrl';
 
 interface PropertyCardProps {
   id: string;
@@ -27,16 +29,46 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
   tags = []
 }) => {
   const [isFavorite, setIsFavorite] = useState(false);
+  const [isEnquiryModalOpen, setIsEnquiryModalOpen] = useState(false);
+  const [isImageLoading, setIsImageLoading] = useState(true);
+  const [imageError, setImageError] = useState(false);
 
   return (
+    <>
     <Link to={`/property/${id}`} className="block">
       <div className="bg-white border border-[#E6E0DA] rounded-xl overflow-hidden hover:shadow-2xl transition-all duration-300 group cursor-pointer">
       {/* Image Container */}
-      <div className="relative aspect-[340/240] overflow-hidden">
+      <div className="relative aspect-[340/240] overflow-hidden bg-[#F3EDE5]">
+        {/* Loading Skeleton */}
+        {isImageLoading && !imageError && (
+          <div className="absolute inset-0 bg-gradient-to-r from-[#E6E0DA] via-[#F3EDE5] to-[#E6E0DA] animate-pulse" />
+        )}
+
+        {/* Error Placeholder */}
+        {imageError && (
+          <div className="absolute inset-0 bg-[#F3EDE5] flex items-center justify-center">
+            <div className="text-center">
+              <span className="material-icons text-4xl text-[#D4755B] opacity-40">
+                image_not_supported
+              </span>
+              <p className="text-sm text-[#6B7280] mt-2">Image unavailable</p>
+            </div>
+          </div>
+        )}
+
+        {/* Image */}
         <img 
-          src={image}
+          src={getImageUrl(image)}
           alt={name}
-          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+          loading="lazy"
+          onLoad={() => setIsImageLoading(false)}
+          onError={() => {
+            setIsImageLoading(false);
+            setImageError(true);
+          }}
+          className={`w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 ${
+            imageError || isImageLoading ? 'opacity-0' : 'opacity-100'
+          }`}
         />
 
         {/* Gradient Overlay */}
@@ -141,12 +173,34 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
           </div>
         )}
 
-        <button className="w-full mt-2 bg-transparent border border-[#D4755B] text-[#D4755B] font-manrope font-bold py-2 rounded-lg hover:bg-[#D4755B] hover:text-white transition-all">
-          View Details
-        </button>
+        <div className="flex gap-2 mt-4">
+          <Link to={`/property/${id}`} className="flex-1">
+            <button className="w-full bg-transparent border border-[#D4755B] text-[#D4755B] font-manrope font-bold py-2 rounded-lg hover:bg-[#D4755B] hover:text-white transition-all">
+              View Details
+            </button>
+          </Link>
+          <button 
+            onClick={(e) => {
+              e.preventDefault();
+              setIsEnquiryModalOpen(true);
+            }}
+            className="flex-1 bg-[#D4755B] text-white font-manrope font-bold py-2 rounded-lg hover:bg-[#B86851] transition-all"
+          >
+            Enquire Now
+          </button>
+        </div>
       </div>
     </div>
     </Link>
+
+    {/* Enquiry Modal */}
+    <EnquiryModal 
+      isOpen={isEnquiryModalOpen}
+      onClose={() => setIsEnquiryModalOpen(false)}
+      propertyId={id}
+      propertyName={name}
+    />
+    </>
   );
 };
 

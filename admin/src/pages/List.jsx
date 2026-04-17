@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import {
   Trash2, Edit3, Search, Plus, Home, BedDouble, Bath,
   Maximize, MapPin, Grid3X3, List as ListIcon, RefreshCw,
@@ -7,6 +7,7 @@ import {
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import AuthContext from "../contexts/AuthContext";
 import apiClient from "../services/apiClient";
 import { cn, formatPrice, getImageUrl } from "../lib/utils";
 
@@ -171,6 +172,7 @@ const PropertyListRow = ({ property, onRemove }) => (
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 const PropertyListings = () => {
+  const { user } = useContext(AuthContext);
   const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -178,6 +180,9 @@ const PropertyListings = () => {
   const [sortBy, setSortBy] = useState("newest");
   const [viewMode, setViewMode] = useState("grid");
   const [refreshing, setRefreshing] = useState(false);
+
+  const isBuilder = user?.role === 'builder';
+  const isSuperAdmin = user?.role === 'superadmin';
 
   const fetchProperties = async () => {
     try {
@@ -257,9 +262,15 @@ const PropertyListings = () => {
         <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }}
           className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-[#1C1B1A] mb-1">Properties</h1>
+            <h1 className="text-3xl font-bold text-[#1C1B1A] mb-1">
+              {isBuilder ? "My Properties" : "All Properties"}
+            </h1>
             <p className="text-[#5A5856] text-sm">
-              <span className="font-semibold text-[#D4755B]">{filteredProperties.length}</span> listings found
+              {isBuilder ? (
+                <>Manage your <span className="font-semibold text-[#D4755B]">{filteredProperties.length}</span> listings</>
+              ) : (
+                <><span className="font-semibold text-[#D4755B]">{filteredProperties.length}</span> properties found</>
+              )}
             </p>
           </div>
           <div className="flex items-center gap-2">

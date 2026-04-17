@@ -13,6 +13,9 @@ import {
   banUser,
   unbanUser,
   deleteUser,
+  // Builder Management
+  createBuilder,
+  getAllBuilders,
   // Bulk Operations
   bulkSuspendUsers,
   bulkBanUsers,
@@ -51,6 +54,10 @@ router.put('/users/:id/suspend', suspendUser);
 router.put('/users/:id/ban', banUser);
 router.put('/users/:id/unban', unbanUser);
 router.delete('/users/:id', deleteUser);
+
+// Builder Management (admin-only creation)
+router.post('/builders', createBuilder);
+router.get('/builders', getAllBuilders);
 
 // Bulk User Operations
 router.post('/users/bulk-suspend', bulkSuspendUsers);

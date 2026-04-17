@@ -718,6 +718,113 @@ export const deleteUser = async (req, res) => {
   }
 };
 
+/**
+ * POST /api/admin/builders
+ * Create a new builder/property lister account (admin only)
+ * Builders can only be created by admins, not via public signup
+ */
+export const createBuilder = async (req, res) => {
+  try {
+    const { name, email, password, companyName, phone } = req.body;
+
+    // Validation
+    if (!name || !email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Name, email, and password are required"
+      });
+    }
+
+    // Check if email already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        message: "Email already registered"
+      });
+    }
+
+    // Create builder account
+    // Password will be hashed by the pre-save hook in the schema
+    const newBuilder = new User({
+      name,
+      email,
+      password,  // Raw password - schema pre-save hook will hash it
+      role: 'builder',  // Explicitly set role as builder
+      companyName: companyName || '',
+      phone: phone || '',
+      createdBy: req.admin.email,
+      isEmailVerified: true,  // Admin-created builders are pre-verified
+      status: 'active'
+    });
+
+    await newBuilder.save();
+
+    // Log activity
+    await logAdminActivity(
+      req.admin.email,
+      'create_builder',
+      'user',
+      newBuilder._id.toString(),
+      name,
+      { email, companyName },
+      req
+    );
+
+    // Send welcome email to builder
+    try {
+      const welcomeContent = `
+        <h2>Welcome to BuildEstate Admin Panel</h2>
+        <p>Hello ${name},</p>
+        <p>Your builder account has been created by admin. You can now login and start listing properties.</p>
+        <p><strong>Login Email:</strong> ${email}</p>
+        <p>Please keep your password secure.</p>
+        <p>Best regards,<br/>BuildEstate Team</p>
+      `;
+      await emailService.sendEmail(email, 'BuildEstate - Builder Account Created', welcomeContent);
+    } catch (emailError) {
+      console.error('Failed to send welcome email to builder:', emailError);
+      // Don't fail the operation if email fails
+    }
+
+    res.json({
+      success: true,
+      message: "Builder account created successfully",
+      builder: {
+        id: newBuilder._id,
+        name: newBuilder.name,
+        email: newBuilder.email,
+        companyName: newBuilder.companyName,
+        role: newBuilder.role
+      }
+    });
+  } catch (error) {
+    console.error("Error creating builder:", error);
+    res.status(500).json({ success: false, message: "Error creating builder account" });
+  }
+};
+
+/**
+ * GET /api/admin/builders
+ * Get all builders
+ */
+export const getAllBuilders = async (req, res) => {
+  try {
+    const builders = await User.find({ role: 'builder' })
+      .select('-password')
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      builders,
+      total: builders.length
+    });
+  } catch (error) {
+    console.error("Error fetching builders:", error);
+    res.status(500).json({ success: false, message: "Error fetching builders" });
+  }
+};
+
 
 // ── BULK OPERATIONS ────────────────────────────────────────────────────────────
 

@@ -6,14 +6,18 @@ import dotenv from "dotenv";
 import validator from "validator";
 import crypto from "crypto";
 import userModel from "../models/userModel.js";
-import { Admin } from "../models/userModel.js";
 import emailService from "../services/emailService.js";
 import { validateEmail, isDisposableEmail } from "../utils/emailValidation.js";
 
 const backendurl = process.env.BACKEND_URL;
 
-const createtoken = (id, rememberMe = false) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
+const createtoken = (user, rememberMe = false) => {
+  return jwt.sign({ 
+    id: user._id,
+    email: user.email,
+    name: user.name,
+    role: user.role
+  }, process.env.JWT_SECRET, {
     expiresIn: rememberMe ? "30d" : "7d", // 30 days if Remember Me, else 7 days
   });
 };
@@ -77,10 +81,14 @@ const login = async (req, res) => {
 
     const isMatch = await bcrypt.compare(password, Registeruser.password);
     if (isMatch) {
-      const token = createtoken(Registeruser._id, rememberMe);
+      const token = createtoken(Registeruser, rememberMe);
       return res.json({
         token,
-        user: { name: Registeruser.name, email: Registeruser.email },
+        user: { 
+          name: Registeruser.name, 
+          email: Registeruser.email,
+          role: Registeruser.role
+        },
         success: true,
         expiresIn: rememberMe ? "30 days" : "7 days"
       });
@@ -114,18 +122,18 @@ const register = async (req, res) => {
       return res.json({ message: "An account with this email already exists.", success: false });
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
     // Generate email verification token
     const verificationToken = crypto.randomBytes(32).toString("hex");
     const hashedVerificationToken = crypto.createHash("sha256").update(verificationToken).digest("hex");
 
     // Create new user (email NOT verified yet)
+    // IMPORTANT: Always create as 'user' role - builders can only be created by admins
+    // Password will be hashed by the pre-save hook in the schema
     const newUser = new userModel({
       name,
       email,
-      password: hashedPassword,
+      password,  // Raw password - schema pre-save hook will hash it
+      role: 'user',  // Force user role - no exceptions
       isEmailVerified: false,
       emailVerificationToken: hashedVerificationToken,
       verificationTokenExpiry: Date.now() + 24 * 60 * 60 * 1000 // 24 hours
@@ -219,27 +227,46 @@ const adminlogin = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Find admin in database
-    const admin = await Admin.findOne({ email });
+    // Find admin in User collection with superadmin role
+    const admin = await userModel.findOne({ 
+      email,
+      role: 'superadmin'
+    });
+    
     if (!admin) {
-      return res.status(400).json({ message: "Invalid credentials", success: false });
+      return res.json({ message: "Invalid credentials", success: false });
     }
 
     // Compare hashed password
     const isMatch = await bcrypt.compare(password, admin.password);
     if (!isMatch) {
-      return res.status(400).json({ message: "Invalid credentials", success: false });
+      return res.json({ message: "Invalid credentials", success: false });
     }
 
     // Update last login
     admin.lastLogin = new Date();
     await admin.save();
 
-    const token = jwt.sign({ email: admin.email }, process.env.JWT_SECRET, { expiresIn: '2h' });
-    return res.json({ token, success: true });
+    const token = jwt.sign({ 
+      email: admin.email,
+      id: admin._id,
+      name: admin.name,
+      role: 'superadmin'
+    }, process.env.JWT_SECRET, { expiresIn: '2h' });
+    
+    return res.json({ 
+      token, 
+      success: true,
+      user: {
+        email: admin.email,
+        name: admin.name,
+        id: admin._id,
+        role: 'superadmin'
+      }
+    });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "Server error", success: false });
+    return res.json({ message: "Server error", success: false });
   }
 };
 

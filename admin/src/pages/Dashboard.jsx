@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import {
@@ -14,6 +15,7 @@ import {
 import { Bar, Doughnut, Line } from "react-chartjs-2";
 import apiClient from "../services/apiClient";
 import { cn, formatDate } from "../lib/utils";
+import { useAdminDashboard } from "../store/hooks";
 
 ChartJS.register(
   CategoryScale, LinearScale, BarElement, LineElement,
@@ -146,86 +148,21 @@ const ActivityItem = ({ item }) => {
 
 // ─── Main Dashboard ───────────────────────────────────────────────────────────
 const Dashboard = () => {
-  const [stats, setStats] = useState(null);
-  const [userStats, setUserStats] = useState(null);
-  const [propertyStats, setPropertyStats] = useState(null);
-  const [recentActivity, setRecentActivity] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [refreshing, setRefreshing] = useState(false);
-  const [isRequestInProgress, setIsRequestInProgress] = useState(false);
+  const { stats, userStats, propertyStats, recentActivity, loading, error, fetchStats } = useAdminDashboard();
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const fetchStats = useCallback(async (isRefresh = false) => {
-    // Prevent multiple simultaneous requests
-    if (isRequestInProgress) {
-      console.log('Request already in progress, skipping...');
-      return;
-    }
-
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
     try {
-      setIsRequestInProgress(true);
-      if (isRefresh) setRefreshing(true);
-      else setLoading(true);
-
-      let hasBasicStats = false;
-
-      // Try enhanced stats first, with graceful fallbacks
-      try {
-        const [overviewRes, userRes, propertyRes, activityRes] = await Promise.allSettled([
-          apiClient.get('/api/admin/stats/overview'),
-          apiClient.get('/api/admin/stats/users'),
-          apiClient.get('/api/admin/stats/properties'),
-          apiClient.get('/api/admin/activity-logs?limit=10')
-        ]);
-
-        // Process results with fallbacks
-        if (overviewRes.status === 'fulfilled' && overviewRes.value.data.success) {
-          setStats(overviewRes.value.data.data);
-          hasBasicStats = true;
-        }
-
-        if (userRes.status === 'fulfilled' && userRes.value.data.success) {
-          setUserStats(userRes.value.data.data);
-        }
-
-        if (propertyRes.status === 'fulfilled' && propertyRes.value.data.success) {
-          setPropertyStats(propertyRes.value.data.data);
-        }
-
-        if (activityRes.status === 'fulfilled' && activityRes.value.data.success) {
-          setRecentActivity(activityRes.value.data.data || []);
-        }
-      } catch (enhancedError) {
-        console.log('Enhanced stats failed, falling back to basic stats');
-      }
-
-      // Fallback to basic stats only if we don't have enhanced stats
-      if (!hasBasicStats) {
-        try {
-          const response = await apiClient.get('/api/admin/stats');
-
-          if (response.data.success) {
-            setStats(response.data.stats);
-          }
-        } catch (basicError) {
-          console.error('Basic stats also failed:', basicError);
-        }
-      }
-
-      setError(null);
-    } catch (err) {
-      console.error("Dashboard stats error:", err);
-      setError("Unable to connect to the server. Please try again.");
+      await fetchStats(true); // Force refresh bypasses cache
     } finally {
-      setLoading(false);
-      setRefreshing(false);
-      setIsRequestInProgress(false);
+      setIsRefreshing(false);
     }
-  }, []); // ✅ Empty dependency array - no circular dependency
+  }, [fetchStats]);
 
   useEffect(() => {
-    fetchStats();
-  }, []); // ✅ Run only once on mount
+    fetchStats(false); // Load from cache or fetch
+  }, [fetchStats]);
 
   const statCards = [
     {
@@ -539,14 +476,14 @@ const Dashboard = () => {
             <p className="text-[#5A5856] text-sm">Welcome back — here's what's happening today</p>
           </div>
           <motion.button
-            onClick={() => fetchStats(true)}
-            disabled={refreshing || isRequestInProgress}
+            onClick={handleRefresh}
+            disabled={isRefreshing}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             className="flex items-center gap-2 px-4 py-2.5 bg-white border border-[#E6D5C3] text-[#1C1B1A] rounded-xl text-sm font-medium hover:border-[#D4755B] hover:text-[#D4755B] transition-all duration-200 shadow-card disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            <RefreshCw className={cn("w-4 h-4", (refreshing || isRequestInProgress) && "animate-spin")} />
-            {refreshing || isRequestInProgress ? "Refreshing..." : "Refresh"}
+            <RefreshCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} />
+            {isRefreshing ? "Refreshing..." : "Refresh"}
           </motion.button>
         </motion.div>
 

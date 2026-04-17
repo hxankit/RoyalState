@@ -1,11 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useSelector } from "react-redux";
 import {
   Calendar, Clock, User, Home, Check, X, Loader2,
   Filter, Search, Link as LinkIcon, Send, AlertCircle,
-  ChevronDown,
+  ChevronDown, Building2,
 } from "lucide-react";
 import { toast } from "sonner";
+import AuthContext from "../contexts/AuthContext";
 import apiClient from "../services/apiClient";
 import { cn, formatDate } from "../lib/utils";
 
@@ -25,6 +27,10 @@ const StatusBadge = ({ status }) => {
 };
 
 const Appointments = () => {
+  const { user } = useContext(AuthContext);
+  const reduxAuth = useSelector(state => state.auth);
+  const isBuilder = reduxAuth?.user?.role === 'builder' || user?.role === 'builder';
+  
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
@@ -36,9 +42,18 @@ const Appointments = () => {
   const fetchAppointments = async () => {
     try {
       setLoading(true);
-      const response = await apiClient.get('/api/appointments/all');
+      
+      // Different endpoints based on role
+      const endpoint = isBuilder 
+        ? '/api/appointments/builder/enquiries' 
+        : '/api/appointments/all';
+      
+      const response = await apiClient.get(endpoint);
+      
       if (response.data.success) {
-        const valid = response.data.appointments.filter((apt) => apt.propertyId);
+        // Handle both response formats
+        const appointmentData = response.data.appointments || response.data.data || [];
+        const valid = appointmentData.filter((apt) => apt.propertyId);
         setAppointments(valid);
       } else {
         toast.error(response.data.message);
@@ -87,7 +102,7 @@ const Appointments = () => {
     }
   };
 
-  useEffect(() => { fetchAppointments(); }, []);
+  useEffect(() => { fetchAppointments(); }, [isBuilder]);
 
   const filteredAppointments = appointments.filter((apt) => {
     const clientName = apt.userId?.name || apt.guestInfo?.name || "";
@@ -125,8 +140,14 @@ const Appointments = () => {
 
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
-          <h1 className="text-3xl font-bold text-[#1C1B1A] mb-1">Appointments</h1>
-          <p className="text-[#5A5856]">Manage and track property viewing appointments</p>
+          <h1 className="text-3xl font-bold text-[#1C1B1A] mb-1">
+            {isBuilder ? 'My Enquiries' : 'All Appointments'}
+          </h1>
+          <p className="text-[#5A5856]">
+            {isBuilder 
+              ? 'View and manage enquiries for your properties' 
+              : 'Manage and track all property viewing appointments'}
+          </p>
         </motion.div>
 
         {/* Filter Tabs + Search */}
@@ -171,11 +192,18 @@ const Appointments = () => {
             <table className="w-full">
               <thead>
                 <tr className="bg-[#1C1B1A]">
-                  {["Property", "Client", "Date & Time", "Status", "Meeting Link", "Actions"].map((h) => (
-                    <th key={h} className="px-6 py-4 text-left text-xs font-semibold text-[#9CA3AF] uppercase tracking-wider">
-                      {h}
-                    </th>
-                  ))}
+                  {isBuilder 
+                    ? ["Property", "Client", "Date & Time", "Status", "Meeting Link", "Actions"].map((h) => (
+                        <th key={h} className="px-6 py-4 text-left text-xs font-semibold text-[#9CA3AF] uppercase tracking-wider">
+                          {h}
+                        </th>
+                      ))
+                    : ["Property", "Builder", "Client", "Date & Time", "Status", "Meeting Link", "Actions"].map((h) => (
+                        <th key={h} className="px-6 py-4 text-left text-xs font-semibold text-[#9CA3AF] uppercase tracking-wider">
+                          {h}
+                        </th>
+                      ))
+                  }
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#F5F1E8]">
@@ -199,6 +227,25 @@ const Appointments = () => {
                           </div>
                         </div>
                       </td>
+
+                      {/* Builder (Admin only) */}
+                      {!isBuilder && (
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 bg-purple-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                              <Building2 className="w-4 h-4 text-purple-500" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-semibold text-[#1C1B1A]">
+                                {appointment.propertyId?.builder?.name || "Unknown"}
+                              </p>
+                              <p className="text-xs text-[#9CA3AF]">
+                                {appointment.propertyId?.builder?.email || "—"}
+                              </p>
+                            </div>
+                          </div>
+                        </td>
+                      )}
 
                       {/* Client */}
                       <td className="px-6 py-4">

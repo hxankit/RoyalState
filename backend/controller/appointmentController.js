@@ -167,10 +167,31 @@ const calculateRevenue = async () => {
 // Appointment management
 export const getAllAppointments = async (req, res) => {
   try {
-    const appointments = await Appointment.find()
-      .populate('propertyId', 'title location')
-      .populate('userId', 'name email')
+    // Build query based on user role
+    let query = {};
+
+    if (req.user && req.user.role === 'builder') {
+      // Builders only see appointments for their properties
+      const properties = await Property.find({ postedBy: req.user._id }).select('_id');
+      const propertyIds = properties.map(p => p._id);
+      query.propertyId = { $in: propertyIds };
+    }
+    // Superadmin sees all appointments (no additional filter)
+
+    const appointments = await Appointment.find(query)
+      .populate('propertyId', 'title location postedBy')
+      .populate('userId', 'name email phone')
       .sort({ createdAt: -1 });
+
+    // For admin: populate builder info for each property
+    if (req.user && req.user.role === 'superadmin') {
+      for (let apt of appointments) {
+        if (apt.propertyId?.postedBy) {
+          const builder = await User.findById(apt.propertyId.postedBy).select('name email phone');
+          apt.propertyId.builder = builder;
+        }
+      }
+    }
 
     res.json({
       success: true,
@@ -540,7 +561,89 @@ export const submitAppointmentFeedback = async (req, res) => {
     });
   }
 };
+/**
+ * GET /api/appointments/builder/enquiries
+ * Get enquiries for a builder's own properties
+ * Requires authentication with builder role
+ */
+export const getBuilderEnquiries = async (req, res) => {
+  try {
+    const builderId = req.user._id;
 
+    // Find all properties posted by this builder
+    const properties = await Property.find({ postedBy: builderId }).select('_id');
+    const propertyIds = properties.map(p => p._id);
+
+    // Find all appointments for these properties
+    const appointments = await Appointment.find({ propertyId: { $in: propertyIds } })
+      .populate('propertyId', 'title location')
+      .populate('userId', 'name email phone')
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      appointments,
+      total: appointments.length,
+      propertyCount: propertyIds.length
+    });
+  } catch (error) {
+    console.error('Error fetching builder enquiries:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching enquiries'
+    });
+  }
+};
+
+/**
+ * GET /api/appointments/builder/stats
+ * Get builder dashboard stats
+ */
+export const getBuilderStats = async (req, res) => {
+  try {
+    const builderId = req.user._id;
+
+    // Find all properties posted by this builder
+    const properties = await Property.find({ postedBy: builderId });
+    const propertyIds = properties.map(p => p._id);
+
+    // Get stats
+    const [
+      totalProperties,
+      activeListings,
+      totalEnquiries,
+      pendingEnquiries,
+      recentEnquiries
+    ] = await Promise.all([
+      Property.countDocuments({ postedBy: builderId }),
+      Property.countDocuments({ postedBy: builderId, status: 'active' }),
+      Appointment.countDocuments({ propertyId: { $in: propertyIds } }),
+      Appointment.countDocuments({ propertyId: { $in: propertyIds }, status: 'pending' }),
+      Appointment.find({ propertyId: { $in: propertyIds } })
+        .populate('propertyId', 'title')
+        .populate('userId', 'name')
+        .sort({ createdAt: -1 })
+        .limit(5)
+    ]);
+
+    res.json({
+      success: true,
+      stats: {
+        totalProperties,
+        activeListings,
+        totalEnquiries,
+        pendingEnquiries,
+        recentEnquiries
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching builder stats:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching builder statistics'
+    });
+  }
+};
 export const getUpcomingAppointments = async (req, res) => {
   try {
     const now = new Date();

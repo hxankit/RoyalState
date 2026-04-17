@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useContext } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Home,
-  List,
   Calendar,
   LogOut,
   LayoutDashboard,
@@ -19,35 +19,44 @@ import {
   Mail,
 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import AuthContext from '../contexts/AuthContext';
+import { logout } from '../store/authSlice';
+import { toggleSidebar } from '../store/uiSlice';
 
 const Sidebar = ({ isOpen, setIsOpen, isCollapsed, setIsCollapsed }) => {
   const navigate = useNavigate();
   const location = useLocation();
-
-  useEffect(() => {
-    localStorage.setItem('sidebarCollapsed', isCollapsed.toString());
-  }, [isCollapsed]);
+  const { user: contextUser } = useContext(AuthContext);
+  const reduxAuth = useSelector(state => state.auth);
+  const dispatch = useDispatch();
+  
+  // Use Redux user first, fallback to context
+  const user = reduxAuth?.user || contextUser;
+  console.log('Sidebar user:', user);
+  const isSuperAdmin = user?.role === 'superadmin';
 
   const isActive = (path) => location.pathname === path;
 
   const toggleCollapse = () => {
+    dispatch(toggleSidebar());
     setIsCollapsed(!isCollapsed);
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('isAdmin');
+    dispatch(logout());
     navigate('/login');
   };
 
-  const navSections = [
+  const navSections = isSuperAdmin ? [
     {
       label: 'Main',
       items: [
         { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
         { path: '/pending-listings', label: 'Review Queue', icon: ClipboardList },
         { path: '/list', label: 'All Properties', icon: Building2 },
+        { path: '/add', label: 'Add Property', icon: Building2 },
         { path: '/users', label: 'Users', icon: Users },
+        { path: '/builders', label: 'Builders', icon: Building2 },
         { path: '/appointments', label: 'Appointments', icon: Calendar },
       ],
     },
@@ -56,6 +65,16 @@ const Sidebar = ({ isOpen, setIsOpen, isCollapsed, setIsCollapsed }) => {
       items: [
         { path: '/activity-logs', label: 'Activity Logs', icon: FileText },
         { path: '/form-queries', label: 'Form Queries', icon: Mail },
+      ],
+    },
+  ] : [
+    {
+      label: 'Main',
+      items: [
+        { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+        { path: '/list', label: 'Properties', icon: Building2 },
+        { path: '/add', label: 'Add Property', icon: Building2 },
+        { path: '/appointments', label: 'Enquiries', icon: Calendar },
       ],
     },
   ];
@@ -210,12 +229,12 @@ const Sidebar = ({ isOpen, setIsOpen, isCollapsed, setIsCollapsed }) => {
                 <User className="h-4 w-4 text-white" />
               </div>
               <div className="flex-1 min-w-0">
-                <div className="text-sm font-semibold text-[#FAF8F4] truncate">Admin</div>
-                <div className="text-xs text-[#9CA3AF]">Administrator</div>
+                <div className="text-sm font-semibold text-[#FAF8F4] truncate">{user?.email || 'User'}</div>
+                <div className="text-xs text-[#9CA3AF]">{isSuperAdmin ? 'SuperAdmin' : 'Builder'}</div>
               </div>
             </div>
           ) : (
-            <div className="flex items-center justify-center px-3 py-2.5 mb-2 bg-white/5 rounded-lg">
+            <div className="flex items-center justify-center px-3 py-2.5 mb-2 bg-white/5 rounded-lg" title={`${isSuperAdmin ? 'SuperAdmin' : 'Builder'}`}>
               <div className="h-9 w-9 bg-[#D4755B] rounded-lg flex items-center justify-center">
                 <User className="h-4 w-4 text-white" />
               </div>

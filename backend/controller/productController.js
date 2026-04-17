@@ -122,12 +122,16 @@ const listproperty = async (req, res) => {
         const limit = parseInt(req.query.limit) || 20; // Default 20 per page
         const skip = (page - 1) * limit;
 
-        // Only return active properties publicly.
-        // Legacy admin-added documents that pre-date the status field are also
-        // included via the $exists check so they are not accidentally hidden.
+        // Build query based on user role
         const query = {
             $or: [{ status: 'active' }, { status: { $exists: false } }],
         };
+
+        // If builder, only show their properties
+        if (req.user && req.user.role === 'builder') {
+            query.postedBy = req.user._id;
+        }
+        // Superadmin sees all (no additional filter)
 
         // Get total count for pagination metadata
         const totalProperties = await Property.countDocuments(query);
