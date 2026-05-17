@@ -80,7 +80,7 @@ const StructuredData: React.FC<StructuredDataProps> = ({ type, data }) => {
     aiHub: {
       '@context': 'https://schema.org',
       '@type': 'WebApplication',
-      name: 'AI Property Hub - BuildEstate',
+      name: 'AI Property Hub - Expanzia Properties',
       applicationCategory: 'RealEstateApplication',
       description: 'AI-powered real estate analytics, property search, and investment insights.',
       url: `${SITE_URL}/ai-hub`,

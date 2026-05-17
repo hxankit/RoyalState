@@ -16,7 +16,7 @@ const OtherWaysSection: React.FC = () => {
       title: 'WhatsApp Us',
       description: 'Chat directly with our support team via WhatsApp for instant assistance.',
       action: 'Start Chat',
-      actionLink: 'https://wa.me/919876543210',
+      actionLink: 'https://wa.me/917599828342',
       bgColor: 'bg-[#E8F5E9]'
     },
     {
@@ -28,7 +28,7 @@ const OtherWaysSection: React.FC = () => {
       bgColor: 'bg-[#E3F2FD]'
     },
     {
-      icon: 'event',
+      icon: 'call',
       title: 'Schedule a Call',
       description: 'Book a convenient time for a detailed consultation with our specialists.',
       action: 'Book Now',

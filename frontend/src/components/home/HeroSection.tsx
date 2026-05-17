@@ -103,10 +103,10 @@ const HeroSection: React.FC = () => {
                   Explore Properties
                   <span className="font-material-icons text-sm ml-2">arrow_forward</span>
                 </Link>
-                <Link to="/ai-hub" className="border-2 border-[#d1d5db] text-[#374151] font-manrope font-bold text-lg px-8 py-4 rounded-xl hover:border-[#D4755B] hover:text-[#D4755B] transition-all inline-flex items-center">
+                {/* <Link to="/ai-hub" className="border-2 border-[#d1d5db] text-[#374151] font-manrope font-bold text-lg px-8 py-4 rounded-xl hover:border-[#D4755B] hover:text-[#D4755B] transition-all inline-flex items-center">
                   <span className="font-material-icons text-2xl text-[#D4755B] mr-2">smart_toy</span>
                   {import.meta.env.PROD ? 'AI Property Hub' : 'Try AI Search'}
-                </Link>
+                </Link> */}
               </motion.div>
 
               {/* Social Proof */}

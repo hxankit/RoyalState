@@ -11,7 +11,7 @@ propertyrouter.post('/add', upload.fields([
     { name: "image3", maxCount: 1 },
     { name: "image4", maxCount: 1 },
 ]), addproperty);
-propertyrouter.get('/list', protect, listproperty);  // Protected: filters by role
+propertyrouter.get('/list', listproperty);  // Protected: filters by role
 propertyrouter.post('/remove', removeproperty);
 propertyrouter.post('/update', upload.fields([
     { name: "image1", maxCount: 1 },

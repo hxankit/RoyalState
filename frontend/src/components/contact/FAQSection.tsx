@@ -51,7 +51,7 @@ const FAQSection: React.FC = () => {
           </h2>
           <p className="font-manrope text-lg text-[#4B5563] leading-relaxed max-w-[640px] mx-auto">
             Find quick answers to your most pressing questions about buying, selling, and
-            partnering with BuildEstate.
+            partnering with Expanzia Properties.
           </p>
         </div>
 

@@ -32,7 +32,7 @@ const Navbar: React.FC = () => {
   const navLinks = [
     { path: '/', label: 'Home' },
     { path: '/properties', label: 'Properties' },
-    { path: '/ai-hub', label: 'AI Property Hub' },
+    // { path: '/ai-hub', label: 'AI Property Hub' },
     { path: '/about', label: 'About' },
     { path: '/contact', label: 'Contact' },
   ];
@@ -48,8 +48,10 @@ const Navbar: React.FC = () => {
       <div className="max-w-[1280px] mx-auto px-8 flex items-center justify-between h-20">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-3" onClick={closeMobileMenu}>
-          <img src="/logo.png" alt="RoyalEstate" className="h-9 w-auto" />
-          <span className="font-fraunces text-2xl font-bold text-[#111827]">RoyalEstate</span>
+          <img src="/logo.png" alt="Expanzia Properties" className="h-9 w-auto" />
+          <span className="font-fraunces text-2xl font-bold text-[#111827]">
+            Expanzia Properties
+          </span>
         </Link>
 
         {/* Desktop Navigation */}
@@ -58,11 +60,10 @@ const Navbar: React.FC = () => {
             <Link
               key={link.path}
               to={link.path}
-              className={`font-manrope transition-colors ${
-                isActive(link.path)
+              className={`font-manrope transition-colors ${isActive(link.path)
                   ? 'text-[#D4755B] font-semibold'
                   : 'text-[#374151] hover:text-[#D4755B]'
-              }`}
+                }`}
             >
               {link.label}
             </Link>
@@ -99,7 +100,7 @@ const Navbar: React.FC = () => {
         </div>
 
         {/* Mobile Menu Button */}
-        <button 
+        <button
           className="md:hidden p-2 text-[#374151] hover:text-[#D4755B] transition-colors"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         >
@@ -116,11 +117,10 @@ const Navbar: React.FC = () => {
             <Link
               key={link.path}
               to={link.path}
-              className={`font-manrope text-lg py-2 transition-colors ${
-                isActive(link.path)
+              className={`font-manrope text-lg py-2 transition-colors ${isActive(link.path)
                   ? 'text-[#D4755B] font-semibold'
                   : 'text-[#374151] hover:text-[#D4755B]'
-              }`}
+                }`}
               onClick={closeMobileMenu}
             >
               {link.label}

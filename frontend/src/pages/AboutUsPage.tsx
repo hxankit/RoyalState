@@ -12,7 +12,7 @@ import AboutCTASection from '../components/about/AboutCTASection';
 const AboutUsPage: React.FC = () => {
   useSEO({
     title: 'About Us',
-    description: 'Learn about BuildEstate — our mission, values, and the AI-powered technology behind luxury real estate in India.',
+    description: 'Learn about Expanzia Properties — our mission, values, and the AI-powered technology behind luxury real estate in India.',
   });
 
   return (

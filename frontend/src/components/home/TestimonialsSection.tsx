@@ -5,6 +5,7 @@ const TestimonialsSection: React.FC = () => {
     <section className="bg-[#F9F7F2] py-24">
       <div className="max-w-[1280px] mx-auto px-8">
         {/* Section Header */}
+
         <div className="flex justify-between items-center mb-16">
           <div>
             <div className="font-space-mono text-sm text-[#D4755B] uppercase tracking-widest mb-4">Testimonials</div>
@@ -22,10 +23,10 @@ const TestimonialsSection: React.FC = () => {
               ))}
             </div>
             <p className="font-manrope text-base text-[#4b5563] leading-relaxed mb-6">
-              "BuildEstate's AI matched us with our dream home in just 2 weeks. The process was seamless and personalized."
+              "Expanzia Properties's AI matched us with our dream home in just 2 weeks. The process was seamless and personalized."
             </p>
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-[#E5E7EB] rounded-full" />
+              {/* <div className="w-12 h-12 bg-[#E5E7EB] rounded-full" /> */}
               <div>
                 <div className="font-syne font-bold text-sm text-[#111827]">Sarah Johnson</div>
                 <div className="font-manrope text-xs text-[#6b7280]">Los Angeles, CA</div>
@@ -44,7 +45,7 @@ const TestimonialsSection: React.FC = () => {
               "The neighborhood insights were invaluable. We knew exactly what we were getting before even visiting."
             </p>
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-[#E5E7EB] rounded-full" />
+              {/* <div className="w-12 h-12 bg-[#E5E7EB] rounded-full" /> */}
               <div>
                 <div className="font-syne font-bold text-sm text-[#111827]">Michael Chen</div>
                 <div className="font-manrope text-xs text-[#6b7280]">San Francisco, CA</div>
@@ -63,7 +64,7 @@ const TestimonialsSection: React.FC = () => {
               "Best real estate experience ever. The AI recommendations were spot-on and saved us months of searching."
             </p>
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-[#E5E7EB] rounded-full" />
+              {/* <div className="w-12 h-12 bg-[#E5E7EB] rounded-full" /> */}
               <div>
                 <div className="font-syne font-bold text-sm text-[#111827]">Emily Rodriguez</div>
                 <div className="font-manrope text-xs text-[#6b7280]">Austin, TX</div>
